@@ -1,110 +1,449 @@
-\chapter{Results \& Discussions}
-Every chapter should start with an introduction paragraph. This paragraph should brief about the flow of the chapter. This introduction can be limited within 4 to 5 sentences. The chapter heading should be appropriately modified (a sample heading is shown for this chapter).But don't start the introduction paragraph in the chapters like "This chapter deals with....". Instead you should bring in the highlights of the chapter in the introduction paragraph.
-\section{Contents of this chapter}
-All the results obtained for your objectives should be discussed in this chapter. This chapter should contain the following sections as per the project.
-\begin{enumerate}
-\item Simulation results
-\item Experimental results
-\item Performance Comparison
-\item Inferences drawn from the results obtained
-\end{enumerate}
+\chapter[Detailed Design]{Detailed Design}
+This chapter presents the detailed design of the proposed system. It explains the internal
+organization of modules, workflow of system operations, database structure, interface design,
+and detailed interaction between components.
+
+Unlike the High-Level Design chapter, which focuses on the overall architecture and
+conceptual organization of the system, this chapter focuses on the internal structural and
+functional design of the system components.
+
+ \section[Structure Chart]{Structure Chart}
+This section presents the structural decomposition and organization of the system into
+modules and sub-modules.
+\subsection[Functional Decomposition]{Functional Decomposition}
+To manage complexity, the system is decomposed into four distinct, logical modules. Each module encapsulates a specific domain of operations, ensuring high cohesion and low coupling.
+
+\subsubsection{Friction Sentry Module}
+\textbf{A. Purpose} \\
+This module is responsible for the ingestion, parsing, and structured interpretation of disruption signals. It serves as the risk-monitoring interface that maps raw event alerts to concrete physical impacts.
+
+\textbf{B. Contribution to Overall System} \\
+It protects the downstream optimization algorithms from dealing with raw text or unstructured data by translating news signals into standardized variables (severity multipliers, location targets, and cost impacts).
+
+\subsubsection{Networked Digital Twin Module}
+\textbf{A. Purpose} \\
+This module maintains the in-memory representation of the logistics network (directed graph topology) and models inventory health. It simulates the physical reaction of the supply chain network when a shock is injected.
+
+\textbf{B. Contribution to Overall System} \\
+It computes the real-world impact of delays on safety stock and inventory levels. By calculating stockout risks and daily consumption depletion, it provides the operational context needed to trigger emergency actions.
+
+\subsubsection{Logistics Optimizer Module}
+\textbf{A. Purpose} \\
+This module serves as the execution and decision-making engine of the system, responsible for mathematical path routing and orchestrating autonomous LLM agents to resolve supply chain exceptions.
+
+\textbf{B. Contribution to Overall System} \\
+It acts as the system's "brain." It calculates alternate paths bypassing disruptions, coordinates agent tasks (Optimizer, Analyst, and Communicator), and executes corrective replenishment actions to prevent stockouts.
+
+\subsubsection{Interactive Dashboard Module}
+\textbf{A. Purpose} \\
+This module provides the user interface (UI) to visualize the state of the logistics network, display alternate route simulations, and present comparative benchmark metrics.
+
+\textbf{B. Contribution to Overall System} \\
+It makes the complex underlying data understandable to human operators by overlaying geographic routes on a map, displaying stockout warnings, and highlighting the cost and time savings of agentic optimization versus the human baseline.
+
+\subsection[Module Hierarchy]{Module Hierarchy}
+The system is organized into a modular control hierarchy where responsibilities are distributed between the user interface, the API orchestration layer, and local computation engines, as illustrated in Figure~\ref{fig:hierarchy}.
+
+\begin{figure}[htbp]
+    \centering
+    \makebox[\textwidth][c]{\includegraphics[width=1.1\textwidth]{Figures/Module hierarchy.png}}
+    \caption{System Module Hierarchy and Control Structure}
+    \label{fig:hierarchy}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{Parent-Child Relationships:} The FastAPI Server acts as the central controller orchestration parent. It accepts inputs from the frontend Interactive Dashboard, coordinates signal transformations inside the Friction Sentry, updates network parameters inside the Networked Digital Twin, and executes path-finding inside the Logistics Optimizer.
+    \item \textbf{Control Hierarchy:} Operations are strictly top-down. The user initiates requests from the Interactive Dashboard (Child). The FastAPI Controller (Parent) intercepts the request, routes it sequentially through the computing modules, and returns the unified response.
+    \item \textbf{Distribution of Responsibilities:}
+    \begin{itemize}
+        \item \textbf{Frontend:} Handles user interaction, rendering Leaflet coordinates, and strategy state.
+        \item \textbf{Backend API Layer:} Manages execution flow, processes HTTP inputs, and parses JSON parameters.
+        \item \textbf{Algorithmic/Agentic Engine:} Resolves mathematical routing and handles multi-agent reasoning loops.
+    \end{itemize}
+\end{itemize}
+
+\subsection[Module Interaction Flow]{Module Interaction Flow}
+Modules interact asynchronously and sequentially to process disruptions and update the digital twin. Figure~\ref{fig:interaction_flow} depicts the sequential flow of data and control signals across the system components.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/Interaction flow diagram.png}
+    \caption{Detailed Module Interaction and Data Flow}
+    \label{fig:interaction_flow}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{Triggering of Operations:} System execution is event-triggered, initiated either by a simulated news alert or by the user selecting a strategic preference (cost/time) and clicking "Run Optimization" on the dashboard.
+    \item \textbf{Data Exchange Flow:}
+    \begin{enumerate}
+        \item The API requests rules parsing.
+        \item The parsed rules feed directly into the graph-modification engine to create a shocked state.
+        \item The shocked state is evaluated for stockout risks.
+        \item The shocked parameters and inventory metrics are passed as prompt context to the \texttt{CrewAI} reasoning agentic loop.
+        \item The final dashboard payload is returned in a unified JSON structure.
+    \end{enumerate}
+\end{itemize}
+
+\section[Module Description]{Module Description}
+
+\subsection[Module 1: Friction Sentry]{Module 1: Friction Sentry}
+\begin{itemize}
+    \item \textbf{Module Name:} Friction Sentry
+    \item \textbf{Objective/Purpose:} To ingest unstructured disruption logs and map them to standard risk variables and propagation parameters.
+    \item \textbf{Inputs:}
+    \begin{itemize}
+        \item Raw event signal properties (location, event type, severity).
+        \item Static translation database (\texttt{semantic\_mapping\_rules.json}).
+    \end{itemize}
+    \item \textbf{Internal Processing Performed:}
+    \begin{itemize}
+        \item Maps free-text locations to valid graph node IDs.
+        \item Determines severity tiers (low, medium, high, critical) and extracts corresponding cost multipliers.
+        \item Calculates cascaded disruptions to adjacent nodes using decay rates (e.g., cascading Strait of Hormuz shocks to Nhava Sheva port with a $0.50$ decay multiplier).
+    \end{itemize}
+    \item \textbf{Outputs:} Structured JSON shock event payload.
+    \item \textbf{Dependencies:} \texttt{json}, \texttt{re}.
+    \item \textbf{Interaction with Other Modules:} Feeds structured shock data directly into the Networked Digital Twin to apply edge changes.
+\end{itemize}
+
+\subsection[Module 2: Networked Digital Twin]{Module 2: Networked Digital Twin}
+\begin{itemize}
+    \item \textbf{Module Name:} Networked Digital Twin
+    \item \textbf{Objective/Purpose:} To simulate the impact of network shocks on transit lanes and track target market safety stock parameters.
+    \item \textbf{Inputs:}
+    \begin{itemize}
+        \item Network topology configuration (\texttt{network\_topology.json}).
+        \item Structured shock event payload (from Friction Sentry).
+    \end{itemize}
+    \item \textbf{Internal Processing Performed:}
+    \begin{itemize}
+        \item Modifies directed graph edge weights for cost and transit times according to severity multipliers.
+        \item Evaluates inventory Days of Cover ($DoC$) for target markets.
+        \item Executes the Chopra safety stock mathematical formulas to assess stock holding costs under lead time uncertainty.
+        \item Checks if transit delay exceeds inventory cover to raise stockout flags.
+    \end{itemize}
+    \item \textbf{Outputs:} Shocked Network Graph Object (in-memory) and Inventory State Snapshot (utilization percentage, stockout Boolean).
+    \item \textbf{Dependencies:} \texttt{networkx}, \texttt{InventoryManager} subclass.
+    \item \textbf{Interaction with Other Modules:} Receives parameters from Friction Sentry and provides the active network state to the Logistics Optimizer for path-finding.
+\end{itemize}
+
+\subsection[Module 3: Logistics Optimizer]{Module 3: Logistics Optimizer}
+\begin{itemize}
+    \item \textbf{Module Name:} Logistics Optimizer
+    \item \textbf{Objective/Purpose:} To resolve network bottlenecks by computing optimal alternate paths and executing emergency inventory restocking actions.
+    \item \textbf{Inputs:}
+    \begin{itemize}
+        \item Shocked Network Graph Object and Target Destination ID.
+        \item Optimization Strategy selection (\texttt{cost} or \texttt{time}).
+        \item Remote LLM Connection (via Gemini API).
+    \end{itemize}
+    \item \textbf{Internal Processing Performed:}
+    \begin{itemize}
+        \item Executes Dijkstra's algorithm to find alternate paths that bypass blocked chokepoints.
+        \item Orchestrates a \texttt{CrewAI} execution pipeline (Logistics Solver $\rightarrow$ Cost Analyst $\rightarrow$ UX Communicator).
+        \item Triggers the \texttt{EmergencyRestockTool} to inject replenishment inventory if analyst agents identify an imminent stockout.
+        \item Benchmarks the dynamic optimized route against a static human baseline (subject to the "Cost of Inaction").
+    \end{itemize}
+    \item \textbf{Outputs:} Optimized alternate route sequence, recalculated landed costs, optimized transit days, restock logs, and benchmark metrics.
+    \item \textbf{Dependencies:} \texttt{crewai}, \texttt{networkx}, \texttt{google-genini-sdk}.
+    \item \textbf{Interaction with Other Modules:} Receives graph structures from the Networked Digital Twin and sends calculation results to the Interactive Dashboard via API.
+\end{itemize}
+
+\subsection[Module 4: Interactive Dashboard]{Module 4: Interactive Dashboard}
+\begin{itemize}
+    \item \textbf{Module Name:} Interactive Dashboard
+    \item \textbf{Objective/Purpose:} To provide a visual user interface mapping spatial route modifications, telemetry data, and comparative benchmark results.
+    \item \textbf{Inputs:}
+    \begin{itemize}
+        \item Geographic coordinates dictionary (\texttt{COORDS}).
+        \item Optimization payload containing routes, metrics, and stockout statuses.
+    \end{itemize}
+    \item \textbf{Internal Processing Performed:}
+    \begin{itemize}
+        \item Translates node ID chains into latitude/longitude sequences.
+        \item Draws routing polylines (dashed for baseline routes, solid color-coded lines for optimized reroutes).
+        \item Renders alert banners, metric widgets (landed cost comparison, transit time changes), and stockout logs.
+    \end{itemize}
+    \item \textbf{Outputs:} Interactive geographical web dashboard interface.
+    \item \textbf{Dependencies:} \texttt{React}, \texttt{react-leaflet}, \texttt{axios}, \texttt{lucide-react}, \texttt{framer-motion}.
+    \item \textbf{Interaction with Other Modules:} Triggers operations by sending optimization requests to the FastAPI backend and displays processing outcomes returned by the Logistics Optimizer.
+\end{itemize}
 All the figures should be properly explained by bringing the scenarios of the design done in the project. A detailed discussion of results obtained should be done in this chapter.
 
-\section{Tables in thesis}
+\section[Database and Interface Design]{Database and Interface Design}
+\subsection[Database Design]{Database Design}
+The system implements a hybrid data storage strategy tailored for digital twins and graph-theoretic applications.
+
 \begin{itemize}
-	\item All Table Caption should be in Sentence Case, TNR 10 Pt. It should be of the Format:
-	\begin{itemize}
-		\item Table 1.1 Results of the experiment ….(Centered)
-	\end{itemize}
-	\item It should be cited as Table 1.1.
-	\item Caption should appear above the Table.
-	\item Table Header and the entries should be of Font TNR 10 Pt, Justified.
-	\item For wider Table, the page orientation can be Landscape.
-	\item For Larger Table, it can run to pages and the header should be repeated for each page of the Table.
-	\item Table must be adjusted to fit in the page and no single row is left out for a new page.	
+    \item \textbf{Database Type:} The project utilizes a NoSQL Document Store (JSON configuration files) for managing the network graph structure and configuration rules, combined with a Flat-File Relational Database (CSV format) for logging analytical, tabular benchmark statistics.
+    \item \textbf{Data Organization Strategy:}
+    \begin{itemize}
+        \item \textbf{Network Topology Store (\texttt{network\_topology.json}):} Formatted as a document store modeling a directed graph, organizing data into nodes (entities) and edges (relational links).
+        \item \textbf{Semantic Rules Library (\texttt{semantic\_mapping\_rules.json}):} Stores risk factors and propagation properties as structured, hierarchical key-value documents.
+        \item \textbf{Comparative Analysis Log (\texttt{comparative\_analysis.csv}):} Stores structured, flat-file relational records comparing execution metrics of human vs. AI agents for dashboard ingestion.
+    \end{itemize}
+    \item \textbf{Relationships between Entities:}
+    \begin{itemize}
+        \item \textbf{Nodes and Edges:} A node represents a physical facility (Supplier, Port, Warehouse, or Market). Edges represent directional shipping lanes connecting a source node to a target node, containing attributes like baseline cost, baseline transit time, and mode.
+        \item \textbf{Events and Nodes:} A disruption event maps directly to one or more nodes (representing the location of the shock) and propagates along outgoing edges.
+    \end{itemize}
+    \item \textbf{Storage Structure:} In-memory representation uses Python dictionary mappings and dynamic NetworkX graph structures, backed by persistent local file storage to minimize database connection overheads and maximize execution speed.
 \end{itemize}
 
-Sample Table \ref{c5:tab1} is given below for your reference,
+\subsection[ER Diagram]{ER Diagram}
+The following diagram illustrates the logical relationships between the core operational entities modeled in the logistics digital twin:
 
-\begin{table}[htb]
-\fontsize{10}{12}\selectfont
-\caption{Country List}
-\label{c5:tab1}
-\begin{tabular}{|p{3cm}|c|c|c|}
-	%\hline
-	%\multicolumn{4}{|c|}{Country List} \\
-	\hline
-	\textbf{Country Name     or Area Name}& \textbf {ISO ALPHA 2 Code} & \textbf {ISO ALPHA 3 Code} & \textbf{ISO numeric Code}\\
-	\hline
-	\textbf{Afghanistan}   & AF    & AFG &   004\\\hline
-	\textbf{Aland Islands}&   AX  & ALA   & 248\\\hline
-	\textbf{Albania} & AL & ALB&  008\\\hline
-	\textbf{Algeria}    &DZ & DZA&  012\\\hline
-	\textbf{American Samoa}&   AS  & ASM&016\\\hline
-	\textbf{Andorra}& AD  & AND   & 020\\\hline
-	\textbf{Angola}& AO  & AGO& 024\\
-	\hline
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/ERD.png}
+    \caption{Entity-Relationship Diagram for Logistics Digital Twin}
+    \label{fig:erd}
+\end{figure}
+
+\subsection[Table Structure Description]{Table Structure Description}
+
+\subsubsection{Entity: NODE}
+\textbf{Purpose:} Defines physical facilities and processing nodes within the logistics network.
+
+\begin{table}[htbp]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Field Name} & \textbf{Data Type} & \textbf{Constraints} & \textbf{Field Purpose} \\ \hline
+\texttt{id} & String & Primary Key, Unique, Not Null & Unique identifier for the network node (e.g., \texttt{nhava\_sheva}). \\ \hline
+\texttt{type} & String & Enums: \texttt{supplier}, \texttt{port}, \texttt{warehouse}, \texttt{market} & Categorizes the operational nature of the facility. \\ \hline
+\texttt{name} & String & Not Null & User-friendly geographical name (e.g., "Nhava Sheva Port"). \\ \hline
+\texttt{latitude} & Float & Range: $-90.0$ to $90.0$ & Latitude coordinate for geographical mapping. \\ \hline
+\texttt{longitude} & Float & Range: $-180.0$ to $180.0$ & Longitude coordinate for geographical mapping. \\ \hline
 \end{tabular}
+}
+\caption{Node Entity Structure}
+\label{tab:node_structure}
 \end{table}
 
-%\begin{table}[htp]
-%\fontsize{10}{12}\selectfont
-%\centering
-%\caption{Data units, sources, and dates} \label{c5:tab2}
-%\begin{tabular}{| *4{>{\arraybackslash}m{1in}|} @{}m{0pt}@{}}
-%	\hline
-%	\textbf{Variable} & \textbf{Dates} & \textbf{Units} &
-%	\textbf{Source}  &\\[2ex] 
-%	\hline
-%	\textbf{Nominal Physical Capital Stock} & 1950-1990 & Billions
-%			US\$ & Nehru and Dhareshwar (1993) &\\[0ex]
-%	\hline
-%	\textbf{Total Population} & 1950-1990 & Billions & Nehru and
-%			Dhareshwar (1993) &\\[0ex]
-%	\hline
-%	\textbf{Nominal GDP} & 1950-1990 & Billions  US\$ & PWT &\\[5ex]
-%	\hline
-%	\textbf{Real GDP per capita} & 1950-1990 & 2005 US\$ per capita & PWT &\\[5ex]
-%	\hline
-%\end{tabular}
-%\end{table}
+\subsubsection{Entity: EDGE}
+\textbf{Purpose:} Represents shipping lanes connecting physical nodes in the graph.
 
-\section{Math equation in thesis}
-All equation should be written using equation editor or using an equivalent tool.
+\begin{table}[htbp]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Field Name} & \textbf{Data Type} & \textbf{Constraints} & \textbf{Field Purpose} \\ \hline
+\texttt{source} & String & Foreign Key (references \texttt{NODE.id}) & Origin node of the logistics lane. \\ \hline
+\texttt{target} & String & Foreign Key (references \texttt{NODE.id}) & Destination node of the logistics lane. \\ \hline
+\texttt{transit\_time} & Float & Value $>$ 0 & Baseline duration in days to traverse the lane. \\ \hline
+\texttt{freight\_cost} & Float & Value $>$ 0 & Baseline transportation cost in USD. \\ \hline
+\texttt{mode} & String & Enums: \texttt{ocean}, \texttt{road}, \texttt{rail} & Transport modality utilized on the lane. \\ \hline
+\end{tabular}
+}
+\caption{Edge Entity Structure}
+\label{tab:edge_structure}
+\end{table}
+
+\subsubsection{Entity: INVENTORY}
+\textbf{Purpose:} Tracks real-time stock parameters for destination nodes.
+
+\begin{table}[htbp]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Field Name} & \textbf{Data Type} & \textbf{Constraints} & \textbf{Field Purpose} \\ \hline
+\texttt{market\_id} & String & Primary Key, Foreign Key (references \texttt{NODE.id}) & Identifies which market the inventory parameters apply to. \\ \hline
+\texttt{current\_stock\_mt} & Float & Value $\geq$ 0 & Quantity of stock currently on hand in Metric Tons. \\ \hline
+\texttt{daily\_demand\_mt} & Float & Value $>$ 0 & Average daily inventory consumption rate. \\ \hline
+\texttt{days\_of\_cover} & Float & Value $\geq$ 0 & Estimated days remaining before stock is fully depleted. \\ \hline
+\texttt{is\_stockout} & Boolean & True / False & Flag showing whether on-hand inventory is completely depleted. \\ \hline
+\end{tabular}
+}
+\caption{Inventory Entity Structure}
+\label{tab:inventory_structure}
+\end{table}
+
+\subsection[Interface Design]{Interface Design}
+
+The user interface is designed as an interactive, single-page command-and-control dashboard structured to visualize real-time simulation data.
+
 \begin{itemize}
-	\item Equations should be numbered as : 1.1, 1.2 ...
-	\item Equation should be Centered, 12 Pt, TNR. 
-	\item Equation number should be right Justified
-	\item It should be cited as Eqn. 1.1.
-   \item If the sentence starts by citing an equation, then it should be written as Equation 1.1 For example, Equation 5.1 states the Pythagoras theorem.
-
-	
+    \item \textbf{Screen Organization:} \\
+    The layout is divided into three primary visual zones:
+    \begin{enumerate}
+        \item \textbf{Top Banner (Notification Panel):} Renders critical shock alerts (e.g., location, event type, severity multiplier) detected by the Friction Sentry.
+        \item \textbf{Left Panel (Geospatial Digital Twin Map):} Displays two visual maps in a split container: the \textit{Baseline Network Map} showing undisrupted transit routes, and the \textit{Optimized Alternate Route Map} highlighting the new routing paths calculated by the system.
+        \item \textbf{Right Panel (Control \& Telemetry Panel):} Hosts the strategy configuration controls, optimization triggers, and dynamic performance cards (e.g., Transit Time Delta, Cost Delta, Stockout Alarms, Executive Summaries).
+    \end{enumerate}
+    \item \textbf{Navigation Flow:} \\
+    As a Single Page Application (SPA), the user does not leave the dashboard. The navigation flow is structural:
+    \begin{center}
+        \small
+        Dashboard Load $\rightarrow$ Dynamic Map Renders $\rightarrow$ Configure Strategy (Cost/Time) $\rightarrow$ \\
+        Click 'Run Optimization' $\rightarrow$ Executive Summary Slides In $\rightarrow$ Path Update Animates on Map
+    \end{center}
+    \item \textbf{Input Forms / Control Elements:}
+    \begin{itemize}
+        \item \textbf{Strategy Toggle:} Radio buttons allow the user to select the optimization objective (\texttt{Minimize Cost} vs. \texttt{Minimize Time}).
+        \item \textbf{Action Button:} A single high-contrast button labeled \texttt{Run Optimization} triggers the background agentic pipeline.
+    \end{itemize}
+    \item \textbf{Output Displays:}
+    \begin{itemize}
+        \item \textbf{Alert Banner:} Dynamic color-coded notifications showing active network shocks (e.g., "Verification Delay: Multiplier 1.35x").
+        \item \textbf{Dynamic Map Overlay:} Renders physical nodes (markers) and interactive polylines (dashed gray for baseline routes, bold purple for optimized agent routes).
+        \item \textbf{Metric Cards:} Renders computed values for the optimized paths, including \textit{New Transit Days} and \textit{Cost Delta}.
+        \item \textbf{Executive Summary:} A dynamic text block generated by the Communicator Agent explaining the reasoning behind the recommended actions.
+    \end{itemize}
 \end{itemize}
 
-For example in Eqn. \ref{eqn:pythag thm}, The well known Pythagorean theorem $x^2 + y^2 = z^2$ was 
-proved to be invalid for other exponents. 
-Meaning the next equation has no integer solutions:
+\subsection[API / Module Interface Design]{API / Module Interface Design}
 
-\begin{equation}
-\label{eqn:pythag thm}
-	x^n + y^n = z^n
-\end{equation}
+The system facilitates module communication via a RESTful API layer managed by FastAPI using standardized JSON payloads.
 
-The mass-energy equivalence is described by the famous equation in Eqn. \ref{eqn:mass-eng}
-\begin{equation}
-\label{eqn:mass-eng}
-	E=mc^2
-\end{equation}
+\subsubsection{API Interaction Workflow}
+\begin{itemize}
+    \item Communication between the React client and FastAPI server is handled over HTTP/HTTPS using standard CRUD operations.
+    \item Dynamic optimization queries use \texttt{POST} requests containing configuration parameters in the request body.
+\end{itemize}
 
-discovered in 1905 by Albert Einstein. 
+\subsubsection{Request-Response Structure}
 
-\section{Interpretation of results}
+\textbf{A. Shock Detection Endpoint (\texttt{GET /api/shock})}
+\begin{itemize}
+    \item \textbf{Purpose:} Retrieves the active network shock parsed by the Friction Sentry.
+    \item \textbf{Response Format (JSON):}
+\end{itemize}
+\begin{lstlisting}[language=json]
+{
+  "status": "active",
+  "location": "red_sea",
+  "message_type": "Houthi Attack Alert",
+  "severity_multiplier": 1.60,
+  "analysis": "Drone attack alert in the Red Sea corridor directly impacting ocean transit lanes."
+}
+\end{lstlisting}
 
-\vspace{2.5cm}
+\textbf{B. Optimization Trigger Endpoint (\texttt{POST /api/optimize})}
+\begin{itemize}
+    \item \textbf{Purpose:} Runs the multi-agent optimization sequence based on user preference.
+    \item \textbf{Request Body (JSON):}
+\end{itemize}
+\begin{lstlisting}[language=json]
+{
+  "optimize_by": "cost"
+}
+\end{lstlisting}
+\begin{itemize}
+    \item \textbf{Response Format (JSON):}
+\end{itemize}
+\begin{lstlisting}[language=json]
+{
+  "recommended_path": "oman -> nhava_sheva -> mumbai_warehouse -> bengaluru_sme_market",
+  "total_transit_days": 10.34,
+  "total_cost_usd": 1695.96,
+  "reroute_triggered": true,
+  "summary_text": "AI selected the Oman-to-Bengaluru path via Nhava Sheva to avoid Red Sea shocks. Landed cost optimized to $1,695.96 with a 10.34-day transit delay.",
+  "delta": {
+    "time_change": "10.34 days",
+    "cost_increase": "+$0.00"
+  }
+}
+\end{lstlisting}
 
- \textbf{The chapters should not end with figures, instead bring the paragraph explaining about the figure at the end followed by a summary paragraph.}
+\subsubsection{Communication Interfaces}
+\begin{itemize}
+    \item \textbf{CORS Middleware:} Backend APIs are configured with Cross-Origin Resource Sharing (CORS) policies to allow communication from the local React frontend port (e.g., \texttt{http://localhost:5173}).
+    \item \textbf{Data Exchange Format:} All data exchanges are formatted as strict \textbf{application/json} payloads. Client-side state updates are triggered asynchronously upon resolution of the HTTP request promise.
+\end{itemize}
 
-After elaborating the various sections of the chapter (From Chapter 2 onwards), a summary paragraph should be written discussing the highlights of that particular chapter. This summary paragraph should not be numbered separately. This paragraph should connect the present chapter to the next chapter.
+\section[Detailed Workflow and Processing]{Detailed Workflow and Processing}
+
+\subsection[Input Processing Workflow]{Input Processing Workflow}
+This subsection details how incoming requests and disruption signals are parsed and validated:
+
+\begin{itemize}
+    \item \textbf{Input Acquisition:} \\
+    The system acquires inputs from two channels:
+    \begin{enumerate}
+        \item \textbf{User Action:} The frontend client transmits optimization preferences (e.g., \texttt{\{"optimize\_by": "cost"\}}) via asynchronous HTTP POST requests.
+        \item \textbf{External File Stream:} The Friction Sentry ingests shock events (event date, target node location, signal type, severity classification) from configuration inputs.
+    \end{enumerate}
+    \item \textbf{Input Validation:} \\
+    Backend validation is handled programmatically at the API layer:
+    \begin{itemize}
+        \item \textbf{Type Enforcement:} Inputs are validated using Pydantic models (e.g., checking that \texttt{optimize\_by} matches one of the string constants \texttt{cost} or \texttt{time}).
+        \item \textbf{Bounds Verification:} Severity multipliers are checked to ensure they are numeric values $\geq 1.0$.
+    \end{itemize}
+    \item \textbf{Input Formatting:} \\
+    Incoming raw strings are stripped of whitespace and converted to standardized, lowercase system identifiers. For example, user inputs or news locations (e.g., "Nhava Sheva") are mapped to graph node IDs (e.g., \texttt{nhava\_sheva}).
+    \item \textbf{Data Verification:} \\
+    Before executing calculations, the backend verifies that the requested shock location and target market IDs exist in the active \texttt{network\_topology.json} model to prevent reference key errors.
+\end{itemize}
+
+\subsection[Internal Processing Workflow]{Internal Processing Workflow}
+This subsection details the processing stages executed once inputs are verified:
+
+\begin{itemize}
+    \item \textbf{Core Processing Stages:} \\
+    The system executes a sequence of logical operations starting from input validation, injecting shock multipliers into the graph model, computing optimized paths via Dijkstra's algorithm, orchestrating the CrewAI reasoning loop, and performing final inventory health checks, as illustrated in Figure~\ref{fig:internal_flow}.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{Figures/Internal flow.png}
+        \caption{Internal Processing Stages and Logical Workflow}
+        \label{fig:internal_flow}
+    \end{figure}
+    
+    \item \textbf{Internal Data Movement:}
+    \begin{itemize}
+        \item \textbf{Graph Model Loading:} The engine reads the baseline graph model and instantiates a \texttt{networkx.DiGraph} object.
+        \item \textbf{Shock Injection:} Edge weights ($w_t$ and $w_c$) on the graph are scaled at the target locations using the shock severity multiplier.
+        \item \textbf{Path Optimization:} Dijkstra's algorithm computes the shortest path arrays (sequence of node IDs) based on the current active weight.
+        \item \textbf{Agent Prompt Construction:} The computed path sequences, delta days, and inventory snapshots are injected into the LLM system prompt templates for the CrewAI task configurations.
+    \end{itemize}
+    \item \textbf{Module Coordination \& Sequence:} \\
+    Execution follows a strict sequential pipeline:
+    \[ \text{Friction Ingestion} \rightarrow \text{Graph Shock Calculation} \rightarrow \text{Dijkstra Routing} \rightarrow \text{Agentic Analysis \& Stock Check} \rightarrow \text{Payload Consolidation} \]
+\end{itemize}
+
+\subsection[Output Generation Workflow]{Output Generation Workflow}
+This subsection details how the backend formats and delivers results:
+
+\begin{itemize}
+    \item \textbf{Output Generation Process:} \\
+    Upon completion of the agent tasks, the system coordinates the outputs of the \textit{Optimizer}, \textit{Analyst}, and \textit{Communicator} agents.
+    \item \textbf{Data Formatting:} \\
+    Raw agent logs are parsed using regular expressions to isolate the outermost JSON block. Float values (such as costs and days) are rounded to two decimal places. Path sequences are formatted as clean string links (e.g., \texttt{Node A -> Node B -> Node C}).
+    \item \textbf{Notification or Response Generation:} \\
+    FastAPI converts the internal dictionary objects into a JSON HTTP response payload. Concurrently, the system updates the terminal logging console. The frontend intercepts this payload to trigger animations and update map polylines.
+\end{itemize}
+
+\subsection[Exception and Validation Flow]{Exception and Validation Flow}
+This subsection explains how the system handles operational errors and exception states:
+
+\begin{itemize}
+    \item \textbf{Validation Mechanisms:}
+    \begin{itemize}
+        \item \textbf{Pydantic Schemas:} Detects invalid parameters at the REST endpoint level, returning HTTP 422 Unprocessable Entity errors.
+        \item \textbf{Reference Checks:} Custom validators verify that nodes parsed by the Friction Sentry exist in the active topology graph.
+    \end{itemize}
+    \item \textbf{Error Handling Flow:}
+    \begin{itemize}
+        \item \textbf{LLM API Timeout:} If the Google Gemini connection experiences high network latency or API rate limits, the system raises a connection timeout exception.
+        \item \textbf{Graph Disconnection:} If a shock completely isolates a destination node (blocking all paths), Dijkstra's algorithm will fail to find a path, raising a \texttt{NetworkXNoPath} error.
+    \end{itemize}
+    \item \textbf{Recovery Mechanisms:}
+    \begin{itemize}
+        \item \textbf{Agent Route Fallback:} If the \texttt{CrewAI} process fails to output valid route JSON due to parser exceptions, the system activates a fallback handler that returns the mathematically computed Dijkstra path coordinates directly to the frontend.
+        \item \textbf{Graceful API Degradation:} Under API errors, the UI replaces detailed summaries with predefined, simplified alert messages while maintaining graph rendering.
+    \end{itemize}
+\end{itemize}
 
 
 
+
+
+
+
+
+\section[Summary]{Summary}
+This chapter provided a Detailed Design of the logistics digital twin, focusing on internal module logic, database schemas, and interface structures. It translated high-level architectural goals into specific execution workflows and API contracts for the multi-agent system. These detailed specifications ensure a cohesive integration between the backend optimization engine and the interactive frontend dashboard.

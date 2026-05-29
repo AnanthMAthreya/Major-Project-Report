@@ -1,27 +1,82 @@
-\chapter{Analysis/Design of Pipelined Analog to Digital converter}
+\chapter[Software Requirement Specification]{Software Requirement Specification}
+This chapter describes the detailed requirements and specifications of the proposed system. It defines the functionalities the system must perform, the performance expectations,
+operational constraints, and the hardware and software resources required for development
+and execution.
+The Software Requirement Specification (SRS) serves as a formal reference document for:
+\begin{itemize}
+\item System design
+\item Development
+\item Testing
+\item Deployment
+\item Maintenance
+\end{itemize}
+This chapter provides a clear understanding of the expected behavior and operational
+environment of the proposed system.
+\section[Overall Description]{Overall Description}
 
-Every chapter should start with an introduction paragraph. This paragraph should brief about the flow of the chapter. This introduction can be limited within 4 to 5 sentences. The chapter heading should be appropriately modified (a sample heading is shown for this chapter).But don't start the introduction paragraph in the chapters like "This chapter deals with....". Instead you should bring in the highlights of the chapter in the introduction paragraph. 
-\section{Contents of this Chapter}
-This chapter should contain the following sections and subsections in detail.
-\begin{enumerate}
-\item Specifications for the Design
-\item Pre analysis work for the design or Models used
-\item Design methodology in detail
-\item Design Equations
-\item Experimental techniques (if any)
-\end{enumerate}
-Apart from the aforementioned sections, you can add sections as per the requirements of the project in consultation with your guide.
+The proposed Agentic AI framework is designed as a proactive decision-support and execution system for Indian Small and Medium Enterprises (SMEs) engaged in global trade. The overall system provides a bridge between high-level geopolitical disruptions and ground-level logistics operations. By integrating unstructured data signals with a mathematical digital twin, the system enables SMEs to visualize risk and execute mitigation strategies—such as rerouting shipments or adjusting safety stocks—that were previously only accessible to large-scale enterprises with massive logistics departments.
 
-\section{Paraphrasing}
-When you paraphrase a written passage, you rewrite it to state the essential ideas in your own words. Because you do not quote your source word for word when paraphrasing, it is unnecessary to enclose the paraphrased material in quotation marks. However, the paraphrased material must be properly referenced because the ideas are taken from someone else whether or not the words are identical. 
+The system is structured as a modular pipeline that begins with the \textbf{Friction Sentry}, which continuously parses and quantifies unstructured signals from news and maritime alerts. These quantified shocks are then injected into the \textbf{Networked Digital Twin}, which uses graph-theoretic algorithms like Dijkstra's to calculate the propagation of friction across the supply chain. The \textbf{Logistics Optimizer}, powered by a multi-agent orchestration layer (CrewAI), evaluates these impacts to generate actionable recovery plans. Finally, the \textbf{Interactive Dashboard} provides a geospatial interface for users to review these plans and perform "What-If" simulations. This comprehensive approach ensures that Indian SMEs can maintain operational continuity and cost-competitiveness even in the face of significant maritime chokepoint disruptions.
 
-Ordinarily, the majority of the notes you take during the research phase of writing your report will paraphrase the original material. Paraphrase only the essential ideas. Strive to put original ideas into your own words without distorting them."
+\subsection{Product Perspective}
 
-\section{Quotations}
-When you have borrowed words, facts, or idea of any kind from someone else's work, acknowledge your debt by giving your source credit in footnote (or in running text as cited reference). Otherwise, you will be guilty of plagiarism. Also, be sure you have represented the original material honestly and accurately. Direct word to word quotations are enclosed in quotation marks."
+The proposed system is an agentic, event-driven Logistics Digital Twin and Decision Support System (DSS) designed to simulate real-world supply chain shocks, such as military blockades, customs backlogs, and weather delays. It utilizes cooperative Large Language Model (LLM) agents to dynamically calculate optimal alternative shipping routes and manage safety stock. Built as a modular, integrated client-server application, the system consists of a React-based frontend dashboard, a FastAPI backend service, an optimization engine powered by NetworkX, and an agentic orchestration layer using CrewAI and Google Gemini.
 
-\vspace{0.75cm}
+In terms of external interactions, the system utilizes the Google Gemini API as its primary LLM endpoint for parsing shocks, evaluating inventory states, and generating intelligent recommendations. For geospatial representation, it interacts with mapping services including OpenStreetMap and CartoDB via Leaflet to render spatial shipping routes. The operational environment is defined by a Python runtime (v3.10 or higher) on the backend and modern web browsers like Chrome, Edge, and Firefox for the React (Vite) single-page application frontend. Within the broader domain, the system fits into modern Supply Chain Risk Management (SCRM) by bridging the gap between traditional mathematical logistics routing and cognitive decision-making, allowing SMEs to proactively bypass global chokepoint delays.
 
- \textbf{The chapters should not end with figures, instead bring the paragraph explaining about the figure at the end followed by a summary paragraph.}
+\subsection{Product Functions}
 
-After elaborating the various sections of the chapter (From Chapter 2 onwards), a summary paragraph should be written discussing the highlights of that particular chapter. This summary paragraph should not be numbered separately. This paragraph should connect the present chapter to the next chapter.  
+The core functionalities of the system include:
+\begin{itemize}
+    \item \textbf{Shock Signal Parsing \& Translation:} Translates raw textual or unstructured disruption notifications (e.g., news alerts) into structured, quantitative shock parameters such as location, mode, and severity multipliers using semantic mapping rules.
+    \item \textbf{Dynamic Dijkstra Route Optimization:} Re-evaluates the directed graph topology under a shocked state to calculate the mathematically shortest path based on specific cost or time preferences.
+    \item \textbf{Real-time Inventory Monitoring:} Tracks the daily inventory status, consumption rates, and Days of Cover ($DoC$) for target SME markets within the networked digital twin.
+    \item \textbf{Autonomous Stockout Prevention:} Detects impending stockouts during transit delays and automatically executes simulated emergency restocking procedures.
+    \item \textbf{Human vs. AI Comparative Benchmarking:} Runs deterministic pipelines comparing a reactive human baseline (subject to the "Cost of Inaction") against the proactive agentic AI response, exporting comparative datasets for business intelligence.
+    \item \textbf{Geospatial Route Visualization:} Renders baseline routes alongside AI-recommended alternate paths on an interactive geographical dashboard.
+\end{itemize}
+\section[Specific Requirements]{Specific Requirements}
+This section describes the detailed requirements of the proposed system.
+\subsection[Functional Requirements]{Functional Requirements}
+\begin{itemize}
+\item \textbf{FR1: Knowledge Graph Construction}: The system must allow the creation of a directed graph mapping international ports to inland Indian SME hubs using NetworkX, supporting dynamic updates to edge weights.
+\item \textbf{FR2: Geopolitical Signal Ingestion (Friction Sentry)}: The system must utilize an LLM agent to ingest unstructured text and extract specific disruption parameters: Location, Severity Level, and Estimated Delay.
+\item \textbf{FR3: Friction Propagation}: The system must inject extracted delay parameters into the network graph to simulate a "shock" and calculate the cascading downstream impact on SME inventory.
+\item \textbf{FR4: Autonomous Optimization}: Upon detecting a critical friction threshold, the Logistics Optimizer agent must autonomously execute a shortest-path algorithm to output a specific, actionable alternative route.
+\item \textbf{FR5: Comparative Baseline Calculation}: The system must mathematically compute the "AI Landed Cost" and compare it against a pre-programmed "Human Baseline Cost" (using Chopra inventory formulas) to quantify savings.
+\end{itemize}
+\subsection[Non-Functional Requirements]{Non-Functional Requirements}
+\begin{itemize}
+\item \textbf{NFR1: Performance}: Graph traversal and alternate route calculations should execute with minimal latency to provide real-time decision support.
+\item \textbf{NFR2: Scalability}: The multi-agent pipeline must be decoupled from the graph engine, ensuring the system can scale to include more ports or swap out LLM models.
+\item \textbf{NFR3: Usability}: The final dashboard must be highly intuitive, designed specifically for SME managers lacking enterprise data infrastructure.
+\end{itemize}
+\subsection[Software Requirements]{Software Requirements}
+\begin{itemize}
+    \item \textbf{Operating System}: Windows 10/11, macOS, or Linux (Ubuntu 20.04+).
+    \item \textbf{Programming Language}: Python 3.9 or higher
+    \item \textbf{AI \& LLM Services}: Google Gemini API (for core natural language reasoning and agent logic).
+    \item \textbf{Agentic Frameworks}: CrewAI and LangChain (for orchestrating the multi-agent system and tool calling).
+    \item \textbf{Mathematical \& Graph Modeling}: NetworkX (for building the Multi-Tier Logistics Digital Twin), alongside Pandas and NumPy for data structuring.
+    \item \textbf{Visualization}: Tableau (for the interactive ``What-If'' scenario dashboard).
+    \item \textbf{Development Environment (IDE)}: Visual Studio Code (VS Code)
+    \item \textbf{Frontend tools}: React (v19.x), Axios (v1.x), Leaflet \& React-Leaflet (v5.x)
+    \item \textbf{Version Control}: Git and GitHub
+\end{itemize}
+
+\subsection[Hardware Requirements]{Hardware Requirements}
+\begin{itemize}
+    \item \textbf{Processor}: Intel Core i5 / AMD Ryzen 5 or equivalent (Minimum); Intel Core i7 / Apple M1/M2 or higher (Recommended for faster multi-tier graph computations).
+\item \textbf{RAM}: 8 GB (Minimum); 16 GB or higher (Recommended for handling large NetworkX logistics graphs and local multi-agent processing simultaneously).
+\item \textbf{Storage}: 256 GB SSD (Minimum) to store datasets, Python environments, and project files.
+\item \textbf{Network}: High-speed, stable internet connection (Crucial for continuous, low-latency API calls to Google Gemini and real-time data ingestion).
+\end{itemize}
+\section[Summary]{Summary}
+This chapter established the Software Requirement Specification for the Agentic AI framework, detailing both functional and non-functional requirements. It provided a comprehensive overview of the hardware and software stack necessary for building a resilient logistics digital twin. These specifications serve as the baseline for the high-level and detailed design phases that follow.
+
+
+
+
+
+
+
