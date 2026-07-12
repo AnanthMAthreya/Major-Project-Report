@@ -1,4 +1,4 @@
-\documentclass[12pt,oneside,a4paper]{book} % This style for A4 format.
+\documentclass[12pt,oneside,openany,a4paper]{book} % This style for A4 format.
 
 \input{./AuxFiles/Packages}
 
@@ -43,12 +43,12 @@
 %% Student Details%%%
 \stuNameA{Ananth M Athreya}
 \stuUSNA{1RV22AI007}
-%\stuNameB{Nithin M}
-%\stuUSNB{1RV22EC006}
-%\stuNameC{Aditya}
-%stuUSNC{1RV22EE007}
-%\stuNameD{Bala N}
-%\stuUSND{1RV22EC007}
+\stuNameB{Anant Tewari}
+\stuUSNB{1RV22CD005}
+\stuNameC{Kiran Aithal}
+\stuUSNC{1RV22CD022}
+\stuNameD{Pranav S K}
+\stuUSND{1RV22CD041}
 %\stuNameE{Advaith Singh}
 %\stuUSNE{1RV22CS012}
 %\stuNameF{Arjith Sinha}
@@ -110,7 +110,7 @@
 \VicePrincipal{Dr. Geetha K S}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%  QRL %%%%%%%%%%%%%%%%%%%%%%%%%%
-\QRurl{}
+\QRurl{https://drive.google.com/drive/folders/1Oa2priCm6g9bSkNLgT98ikuE1_H7rI6Z?usp=sharing}
 %\QRurl{https://drive.google.com/open?id=1jm-POmuq-ZZ1tT5m-xAdCDRnwvLZH8q-}
 
 %%%%%%%%%%%%%%%%%%Draft report%%%%%%%%%%%%%%%%%%
@@ -126,8 +126,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%% Bibliography %%%%%%%%%%%%%%%%%%%%%
-\usepackage[backend=bibtex,style=ieee]{biblatex}
-% If backend is set to bibtex, then configure texmaker Bi(La)Tex with "bibtex %"
+\usepackage[backend=bibtex,style=ieee,sorting=none]{biblatex}
+% If backend is set to bibtex, then configure texmaker Bi(La)Tex with "bibtex %", 
+% however biber is recommended for sorting=none to work correctly.
 \addbibresource{./AuxFiles/ProjectBib.bib}%Add bib file with extention
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -135,7 +136,7 @@
 %% Use it only after Biblatex
 %% Uncomment the following lines for watermarking and run it more than 2 times for proper alignment
 \usepackage{background}
-\backgroundsetup{scale=1, angle=0, firstpage = false, opacity=0.5, contents={
+\backgroundsetup{scale=1, angle=0, firstpage = true, opacity=0.5, contents={
 \begin{tikzpicture}[remember picture, overlay]
 \node at ([yshift=0pt, xshift=0pt]current page.center){\includegraphics[width=0.6\textwidth]{Figures/RVlogoVecW}};
 \end{tikzpicture}
@@ -144,6 +145,9 @@
 \begin{document}
 \NoBgThispage% Don't remove this command, even if you want logo on the first page.	
 \maketitle
+\StuNameBUsedfalse
+\StuNameCUsedfalse
+\StuNameDUsedfalse
 %\pagestyle{empty}
 \newpage
 \ifDrf
@@ -196,6 +200,7 @@
 \printglossary[type=symbolList, title= List of Symbols, toctitle=List of Symbols]
 \fi
 \mainmatter
+\onehalfspacing
 \pagestyle{mplain}
 \glsresetall
 
@@ -266,7 +271,8 @@
 \fi
 
 %% Uncomment the following 2 commands to add Appendix chapters
-%\appendix
-%\input{./Appendix/Apndx}%Appendix Chapter 1
+\appendix
+\input{./Appendix/ApndxA}
+\input{./Appendix/ApndxB}
 
 \end{document}

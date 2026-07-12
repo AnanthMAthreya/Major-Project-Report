@@ -311,11 +311,18 @@
   \ifGuideNameCUsed\vspace{0.25cm}\else \vspace{0.5cm}\fi
   {\noindent\large\bfseries\@stuNameA\unskip\strut}\hfill{\large\bfseries\@stuUSNA\unskip\strut\par}
   \vspace{0.25cm}
-  %{\noindent\large\bfseries\@stuNameB\unskip\strut}\hfill{\large\bfseries\@stuUSNB\unskip\strut\par}
-  %\vspace{0.25cm}
-  %{\noindent\large\bfseries\@stuNameC\unskip\strut}\hfill{\large\bfseries\@stuUSNC\unskip\strut\par}
-  %\vspace{0.25cm}
-  %{\noindent\large\bfseries\@stuNameD\unskip\strut}\hfill{\large\bfseries\@stuUSND\unskip\strut\par}
+  \ifStuNameBUsed
+  {\noindent\large\bfseries\@stuNameB\unskip\strut}\hfill{\large\bfseries\@stuUSNB\unskip\strut\par}
+  \vspace{0.25cm}
+  \fi
+  \ifStuNameCUsed
+  {\noindent\large\bfseries\@stuNameC\unskip\strut}\hfill{\large\bfseries\@stuUSNC\unskip\strut\par}
+  \vspace{0.25cm}
+  \fi
+  \ifStuNameDUsed
+  {\noindent\large\bfseries\@stuNameD\unskip\strut}\hfill{\large\bfseries\@stuUSND\unskip\strut\par}
+  \vspace{0.25cm}
+  \fi
   \ifGuideNameCUsed
   \ifnum\value{numtitlelines}>2 %Hope this vl fix the issue.
   {\vspace{0.125cm}}
@@ -363,7 +370,7 @@
   		{\large\@guideOrgA\unskip\strut\par}
   	\end{center}
   }\fi%\ifGuideNameBUsed
-  \ifGuideNameCUsed\vspace{0.25cm}\else\vspace{2.25cm}\fi
+  \ifGuideNameCUsed\vspace{0.25cm}\else\vspace{0.75cm}\fi
   	\begin{center}% May be try use \vbox cmd for equal spacing, but I need to know the better location (lower)
   		{\large\itshape In partial fulfillment for the award of degree of \par}
   		\vspace{0.125cm}
@@ -434,11 +441,18 @@
 \ifPG
 \vspace{0.5cm}
 \else
-%{\noindent\large\bfseries\@stuNameB\unskip\strut}\hfill{\large\bfseries\@stuUSNB\unskip\strut\par}
-%\ifIDP\vspace{0.125cm}\else\vspace{0.25cm}\fi
-%{\noindent\large\bfseries\@stuNameC\unskip\strut}\hfill{\large\bfseries\@stuUSNC\unskip\strut\par}
-%\ifIDP\vspace{0.125cm}\else\vspace{0.25cm}\fi
-%{\noindent\large\bfseries\@stuNameD\unskip\strut}\hfill{\large\bfseries\@stuUSND\unskip\strut\par}
+\ifStuNameBUsed
+{\noindent\large\bfseries\@stuNameB\unskip\strut}\hfill{\large\bfseries\@stuUSNB\unskip\strut\par}
+\ifIDP\vspace{0.125cm}\else\vspace{0.25cm}\fi
+\fi
+\ifStuNameCUsed
+{\noindent\large\bfseries\@stuNameC\unskip\strut}\hfill{\large\bfseries\@stuUSNC\unskip\strut\par}
+\ifIDP\vspace{0.125cm}\else\vspace{0.25cm}\fi
+\fi
+\ifStuNameDUsed
+{\noindent\large\bfseries\@stuNameD\unskip\strut}\hfill{\large\bfseries\@stuUSND\unskip\strut\par}
+\ifIDP\vspace{0.125cm}\else\vspace{0.25cm}\fi
+\fi
 % Ver 3.8: 
 \ifIDP
 \vspace{0.125cm}
@@ -552,7 +566,7 @@
 \fi%\ifDTL
 \fi%\ifINT
 \par.
-\ifINT\vspace{3cm}\else\ifIDP\vspace{1cm}\else\ifGuideNameCUsed\vspace{0.125cm}\else\vspace{3cm}\fi\fi\fi
+\ifINT\vspace{1.5cm}\else\ifIDP\vspace{0.75cm}\else\ifGuideNameCUsed\vspace{0.125cm}\else\vspace{1.0cm}\fi\fi\fi
 \begin{center}% May be try use \vbox cmd for equal spacing, but I need to know the better location (lower)
 {\large\bfseries In partial fulfillment of the requirements for the degree of \par}
 \vspace{0.25cm}
@@ -915,6 +929,7 @@
 % Added to Ver.3.5 [01/09/2021]
 \gdef\appendix{%
 \setcounter{chapter}{0}
+\global\@mainmattertrue
 \apnset{%
   name={Appendix},
  %
@@ -952,6 +967,30 @@
   number position=rightname,
   %
   header style=mplain,
+}
+\renewcommand\@makechapterhead[2][]{%
+  {%
+    \parindent\z@
+    \normalfont%
+    \if@centerpgtwo\centering\fi%
+    \if@leftpgtwo\raggedright\fi%
+    \if@rightpgtwo\raggedleft\fi%
+    {\chapterfontfamily@pnr\chapterfontweight@pnr\color{\chaptercolor@pnr}\chapterfontsizepgtwo@pnr\uppercase\expandafter{\chaptername}\space\thechapter\numberpunctuation@pnr}%
+    \par\nobreak%
+    \vspace{0.2cm}%
+    \interlinepenalty\@M%
+    \titlefontfamily@pnr%
+    \titlefontweight@pnr%
+    \titlefontsizepgtwo@pnr%
+    \titlefontcolor@pnr%
+    \titlebefore@pnr%
+    {\uppercase\expandafter{##2}}%
+    \titleafter@pnr%
+    \par\nobreak%
+    \titleafterskip@pnr%
+    \pagestyle{\headerstyle@pnr}%
+  }%
+  \vspace{0.6cm}%
 }
 }
 

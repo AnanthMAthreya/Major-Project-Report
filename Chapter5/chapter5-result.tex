@@ -44,9 +44,9 @@ It makes the complex underlying data understandable to human operators by overla
 \subsection[Module Hierarchy]{Module Hierarchy}
 The system is organized into a modular control hierarchy where responsibilities are distributed between the user interface, the API orchestration layer, and local computation engines, as illustrated in Figure~\ref{fig:hierarchy}.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \centering
-    \makebox[\textwidth][c]{\includegraphics[width=1.1\textwidth]{Figures/Module hierarchy.png}}
+    \makebox[\textwidth][c]{\includegraphics[width=1.25\textwidth]{Figures/Module hierarchy.png}}
     \caption{System Module Hierarchy and Control Structure}
     \label{fig:hierarchy}
 \end{figure}
@@ -65,9 +65,9 @@ The system is organized into a modular control hierarchy where responsibilities 
 \subsection[Module Interaction Flow]{Module Interaction Flow}
 Modules interact asynchronously and sequentially to process disruptions and update the digital twin. Figure~\ref{fig:interaction_flow} depicts the sequential flow of data and control signals across the system components.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{Figures/Interaction flow diagram.png}
+    \makebox[\textwidth][c]{\includegraphics[width=1.25\textwidth]{Figures/Interaction flow diagram.png}}
     \caption{Detailed Module Interaction and Data Flow}
     \label{fig:interaction_flow}
 \end{figure}
@@ -193,22 +193,22 @@ The system implements a hybrid data storage strategy tailored for digital twins 
 \subsection[ER Diagram]{ER Diagram}
 The following diagram illustrates the logical relationships between the core operational entities modeled in the logistics digital twin:
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Figures/ERD.png}
     \caption{Entity-Relationship Diagram for Logistics Digital Twin}
     \label{fig:erd}
 \end{figure}
 
+\clearpage
 \subsection[Table Structure Description]{Table Structure Description}
 
 \subsubsection{Entity: NODE}
 \textbf{Purpose:} Defines physical facilities and processing nodes within the logistics network.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
-\resizebox{\textwidth}{!}{
-\begin{tabular}{|l|l|l|l|}
+\begin{tabularx}{\textwidth}{|l|l|>{\hsize=0.8\hsize}X|>{\hsize=1.2\hsize}X|}
 \hline
 \textbf{Field Name} & \textbf{Data Type} & \textbf{Constraints} & \textbf{Field Purpose} \\ \hline
 \texttt{id} & String & Primary Key, Unique, Not Null & Unique identifier for the network node (e.g., \texttt{nhava\_sheva}). \\ \hline
@@ -216,8 +216,7 @@ The following diagram illustrates the logical relationships between the core ope
 \texttt{name} & String & Not Null & User-friendly geographical name (e.g., "Nhava Sheva Port"). \\ \hline
 \texttt{latitude} & Float & Range: $-90.0$ to $90.0$ & Latitude coordinate for geographical mapping. \\ \hline
 \texttt{longitude} & Float & Range: $-180.0$ to $180.0$ & Longitude coordinate for geographical mapping. \\ \hline
-\end{tabular}
-}
+\end{tabularx}
 \caption{Node Entity Structure}
 \label{tab:node_structure}
 \end{table}
@@ -225,10 +224,9 @@ The following diagram illustrates the logical relationships between the core ope
 \subsubsection{Entity: EDGE}
 \textbf{Purpose:} Represents shipping lanes connecting physical nodes in the graph.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
-\resizebox{\textwidth}{!}{
-\begin{tabular}{|l|l|l|l|}
+\begin{tabularx}{\textwidth}{|l|l|>{\hsize=0.8\hsize}X|>{\hsize=1.2\hsize}X|}
 \hline
 \textbf{Field Name} & \textbf{Data Type} & \textbf{Constraints} & \textbf{Field Purpose} \\ \hline
 \texttt{source} & String & Foreign Key (references \texttt{NODE.id}) & Origin node of the logistics lane. \\ \hline
@@ -236,8 +234,7 @@ The following diagram illustrates the logical relationships between the core ope
 \texttt{transit\_time} & Float & Value $>$ 0 & Baseline duration in days to traverse the lane. \\ \hline
 \texttt{freight\_cost} & Float & Value $>$ 0 & Baseline transportation cost in USD. \\ \hline
 \texttt{mode} & String & Enums: \texttt{ocean}, \texttt{road}, \texttt{rail} & Transport modality utilized on the lane. \\ \hline
-\end{tabular}
-}
+\end{tabularx}
 \caption{Edge Entity Structure}
 \label{tab:edge_structure}
 \end{table}
@@ -245,10 +242,9 @@ The following diagram illustrates the logical relationships between the core ope
 \subsubsection{Entity: INVENTORY}
 \textbf{Purpose:} Tracks real-time stock parameters for destination nodes.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
-\resizebox{\textwidth}{!}{
-\begin{tabular}{|l|l|l|l|}
+\begin{tabularx}{\textwidth}{|l|l|>{\hsize=0.8\hsize}X|>{\hsize=1.2\hsize}X|}
 \hline
 \textbf{Field Name} & \textbf{Data Type} & \textbf{Constraints} & \textbf{Field Purpose} \\ \hline
 \texttt{market\_id} & String & Primary Key, Foreign Key (references \texttt{NODE.id}) & Identifies which market the inventory parameters apply to. \\ \hline
@@ -256,8 +252,7 @@ The following diagram illustrates the logical relationships between the core ope
 \texttt{daily\_demand\_mt} & Float & Value $>$ 0 & Average daily inventory consumption rate. \\ \hline
 \texttt{days\_of\_cover} & Float & Value $\geq$ 0 & Estimated days remaining before stock is fully depleted. \\ \hline
 \texttt{is\_stockout} & Boolean & True / False & Flag showing whether on-hand inventory is completely depleted. \\ \hline
-\end{tabular}
-}
+\end{tabularx}
 \caption{Inventory Entity Structure}
 \label{tab:inventory_structure}
 \end{table}
@@ -386,9 +381,9 @@ This subsection details the processing stages executed once inputs are verified:
     \item \textbf{Core Processing Stages:} \\
     The system executes a sequence of logical operations starting from input validation, injecting shock multipliers into the graph model, computing optimized paths via Dijkstra's algorithm, orchestrating the CrewAI reasoning loop, and performing final inventory health checks, as illustrated in Figure~\ref{fig:internal_flow}.
 
-    \begin{figure}[htbp]
+    \begin{figure}[H]
         \centering
-        \includegraphics[width=\textwidth]{Figures/Internal flow.png}
+        \makebox[\textwidth][c]{\includegraphics[width=1.25\textwidth]{Figures/Internal flow.png}}
         \caption{Internal Processing Stages and Logical Workflow}
         \label{fig:internal_flow}
     \end{figure}

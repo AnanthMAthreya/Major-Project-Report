@@ -9,7 +9,7 @@
 \usepackage{amssymb}
 \usepackage{geometry}
 \geometry{a4paper, margin=1in, headheight=28pt}
-\usetikzlibrary{calc}
+\usetikzlibrary{calc,positioning,shapes.geometric,arrows.meta}
 \usepackage{float}
 \usepackage{qrcode}
 %%%Page related
@@ -53,7 +53,15 @@
 %\fi
 \usepackage{setspace}
 %%%Table Related
-%\usepackage{booktabs}
-%\usepackage{makecell}
-%\usepackage{multirow}
-%\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{longtable}
+\usepackage{tabularx}
+
+% Compact list spacing
+\usepackage{enumitem}
+\setlist[itemize]{noitemsep, topsep=2pt, parsep=2pt, partopsep=0pt}
+\setlist[enumerate]{noitemsep, topsep=2pt, parsep=2pt, partopsep=0pt}
+
+% Bibliography management
+\usepackage[backend=bibtex, style=ieee, sorting=none, dashed=false]{biblatex}
